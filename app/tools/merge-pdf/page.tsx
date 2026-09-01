@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -26,6 +26,25 @@ export default function MergePdfPage() {
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const resultUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (resultUrlRef.current) {
+        URL.revokeObjectURL(resultUrlRef.current);
+      }
+    };
+  }, []);
+
+  function clearResult() {
+    if (resultUrlRef.current) {
+      URL.revokeObjectURL(resultUrlRef.current);
+      resultUrlRef.current = null;
+    }
+
+    setResult(null);
+  }
 
   function addFiles(selected: FileList | File[]) {
     const pdfs = Array.from(selected).filter(
@@ -40,26 +59,48 @@ export default function MergePdfPage() {
     }
 
     setError("");
-    setResult(null);
+    clearResult();
 
     setFiles((current) => [
       ...current,
       ...pdfs.map((file) => ({
-        id: `${file.name}-${file.size}-${Date.now()}-${Math.random()}`,
+        id: `${file.name}-${file.size}-${file.lastModified}-${Math.random()}`,
         file,
       })),
     ]);
   }
 
   function removeFile(id: string) {
+    clearResult();
     setFiles((current) => current.filter((item) => item.id !== id));
-    setResult(null);
   }
 
   function clearAll() {
+    clearResult();
     setFiles([]);
-    setResult(null);
     setError("");
+    setDraggedId(null);
+  }
+
+  function moveFile(sourceId: string, targetId: string) {
+    if (sourceId === targetId) return;
+
+    setFiles((current) => {
+      const sourceIndex = current.findIndex((item) => item.id === sourceId);
+      const targetIndex = current.findIndex((item) => item.id === targetId);
+
+      if (sourceIndex === -1 || targetIndex === -1) {
+        return current;
+      }
+
+      const updated = [...current];
+      const [moved] = updated.splice(sourceIndex, 1);
+      updated.splice(targetIndex, 0, moved);
+
+      return updated;
+    });
+
+    clearResult();
   }
 
   async function mergePdfs() {
@@ -70,7 +111,7 @@ export default function MergePdfPage() {
 
     setProcessing(true);
     setError("");
-    setResult(null);
+    clearResult();
 
     try {
       const mergedPdf = await PDFDocument.create();
@@ -88,12 +129,12 @@ export default function MergePdfPage() {
       }
 
       const mergedBytes = await mergedPdf.save();
-
       const blob = new Blob([new Uint8Array(mergedBytes)], {
         type: "application/pdf",
       });
 
       const url = URL.createObjectURL(blob);
+      resultUrlRef.current = url;
       setResult(url);
     } catch {
       setError(
@@ -107,12 +148,21 @@ export default function MergePdfPage() {
   function handleDrop(event: React.DragEvent<HTMLDivElement>) {
     event.preventDefault();
     setDragActive(false);
-    addFiles(event.dataTransfer.files);
+
+    if (!processing) {
+      addFiles(event.dataTransfer.files);
+    }
   }
+
+  const totalSize = files.reduce((total, item) => total + item.file.size, 0);
+
+  const totalSizeLabel =
+    totalSize >= 1024 * 1024
+      ? `${(totalSize / 1024 / 1024).toFixed(2)} MB`
+      : `${Math.max(1, Math.round(totalSize / 1024))} KB`;
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Header */}
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex h-16 max-w-5xl items-center px-4 sm:px-6">
           <a
@@ -132,9 +182,7 @@ export default function MergePdfPage() {
         </div>
       </header>
 
-      {/* Main */}
       <section className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
-        {/* Title */}
         <div className="text-center">
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100">
             <FileText className="h-7 w-7" />
@@ -149,13 +197,14 @@ export default function MergePdfPage() {
           </p>
         </div>
 
-        {/* Workspace */}
         <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-          {/* Upload */}
           <div
             onDragOver={(event) => {
               event.preventDefault();
-              setDragActive(true);
+
+              if (!processing) {
+                setDragActive(true);
+              }
             }}
             onDragLeave={() => setDragActive(false)}
             onDrop={handleDrop}
@@ -177,7 +226,13 @@ export default function MergePdfPage() {
               or choose files from your device
             </p>
 
-            <label className="mt-6 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700">
+            <label
+              className={`mt-6 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 ${
+                processing
+                  ? "cursor-not-allowed opacity-50"
+                  : "cursor-pointer"
+              }`}
+            >
               <Plus className="h-4 w-4" />
               Choose PDF Files
 
@@ -185,6 +240,7 @@ export default function MergePdfPage() {
                 type="file"
                 accept="application/pdf,.pdf"
                 multiple
+                disabled={processing}
                 className="hidden"
                 onChange={(event) => {
                   if (event.target.files) {
@@ -201,7 +257,6 @@ export default function MergePdfPage() {
             </p>
           </div>
 
-          {/* Error */}
           {error && (
             <div className="mt-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               <X className="mt-0.5 h-4 w-4 shrink-0" />
@@ -209,18 +264,24 @@ export default function MergePdfPage() {
             </div>
           )}
 
-          {/* Files */}
           {files.length > 0 && (
             <div className="mt-7">
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-bold text-slate-900">
-                  Selected files ({files.length})
-                </h3>
+              <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="font-bold text-slate-900">
+                    Selected files ({files.length})
+                  </h3>
+
+                  <p className="mt-1 text-xs text-slate-500">
+                    Total size: {totalSizeLabel}
+                  </p>
+                </div>
 
                 <button
                   type="button"
                   onClick={clearAll}
-                  className="text-xs font-semibold text-slate-500 transition hover:text-red-600"
+                  disabled={processing}
+                  className="self-start text-xs font-semibold text-slate-500 transition hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 sm:self-auto"
                 >
                   Clear all
                 </button>
@@ -230,9 +291,37 @@ export default function MergePdfPage() {
                 {files.map((item, index) => (
                   <div
                     key={item.id}
-                    className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 transition hover:border-slate-300"
+                    draggable={!processing}
+                    onDragStart={() => {
+                      if (!processing) {
+                        setDraggedId(item.id);
+                      }
+                    }}
+                    onDragEnd={() => setDraggedId(null)}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+
+                      if (!processing && draggedId) {
+                        moveFile(draggedId, item.id);
+                        setDraggedId(null);
+                      }
+                    }}
+                    className={`flex items-center gap-3 rounded-xl border bg-slate-50 p-3 transition ${
+                      draggedId === item.id
+                        ? "border-indigo-400 opacity-60"
+                        : "border-slate-200 hover:border-slate-300"
+                    }`}
                   >
-                    <GripVertical className="h-5 w-5 shrink-0 text-slate-400" />
+                    <GripVertical
+                      className={`h-5 w-5 shrink-0 ${
+                        processing
+                          ? "text-slate-300"
+                          : "cursor-grab text-slate-400 active:cursor-grabbing"
+                      }`}
+                    />
 
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-red-500 ring-1 ring-red-100">
                       <FileText className="h-5 w-5" />
@@ -251,7 +340,8 @@ export default function MergePdfPage() {
                     <button
                       type="button"
                       onClick={() => removeFile(item.id)}
-                      className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600"
+                      disabled={processing}
+                      className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
                       aria-label={`Remove ${item.file.name}`}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -260,12 +350,15 @@ export default function MergePdfPage() {
                 ))}
               </div>
 
-              {/* Merge */}
+              <p className="mt-3 text-center text-xs text-slate-500">
+                Drag and drop files to change their order.
+              </p>
+
               <button
                 type="button"
                 onClick={mergePdfs}
                 disabled={processing || files.length < 2}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {processing ? (
                   <>
@@ -288,7 +381,6 @@ export default function MergePdfPage() {
             </div>
           )}
 
-          {/* Result */}
           {result && (
             <div className="mt-7 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -321,7 +413,6 @@ export default function MergePdfPage() {
           )}
         </div>
 
-        {/* Trust note */}
         <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-slate-500">
           <span>✓ No registration</span>
           <span>✓ Simple workflow</span>
