@@ -9,6 +9,7 @@ import {
   FilePlus2,
   FileText,
   GitMerge,
+  Droplets,
   LockKeyhole,
   Menu,
   Scissors,
@@ -43,19 +44,25 @@ const tools = [
     title: "PDF to JPG",
     description: "Convert PDF pages into high-quality JPG images.",
     icon: FileImage,
-    href: "#",
+    href: "/tools/pdf-to-jpg",
   },
   {
     title: "JPG to PDF",
     description: "Turn your images into a clean PDF document.",
     icon: FileOutput,
-    href: "#",
+    href: "/tools/jpg-to-pdf",
   },
   {
     title: "Protect PDF",
     description: "Secure your documents with password protection.",
     icon: LockKeyhole,
-    href: "#",
+    href: "/tools/protect-pdf",
+  },
+  {
+    title: "Watermark PDF",
+    description: "Add custom text watermarks to every page of a PDF.",
+    icon: Droplets,
+    href: "/tools/watermark-pdf",
   },
 ];
 
