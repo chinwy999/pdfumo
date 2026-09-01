@@ -25,31 +25,37 @@ const tools = [
     title: "Merge PDF",
     description: "Combine multiple PDF files into one document.",
     icon: GitMerge,
+    href: "/tools/merge-pdf",
   },
   {
     title: "Split PDF",
     description: "Separate pages or extract specific pages from a PDF.",
     icon: Scissors,
+    href: "/tools/split-pdf",
   },
   {
     title: "Compress PDF",
     description: "Reduce PDF file size while keeping great quality.",
     icon: FileArchive,
+    href: "/tools/compress-pdf",
   },
   {
     title: "PDF to JPG",
     description: "Convert PDF pages into high-quality JPG images.",
     icon: FileImage,
+    href: "#",
   },
   {
     title: "JPG to PDF",
     description: "Turn your images into a clean PDF document.",
     icon: FileOutput,
+    href: "#",
   },
   {
     title: "Protect PDF",
     description: "Secure your documents with password protection.",
     icon: LockKeyhole,
+    href: "#",
   },
 ];
 
@@ -223,7 +229,7 @@ export default function Home() {
             return (
               <a
                 key={tool.title}
-                href="#"
+                href={tool.href}
                 className="group rounded-2xl border border-white/[0.08] bg-white/[0.035] p-6 transition duration-300 hover:-translate-y-1 hover:border-cyan-400/30 hover:bg-white/[0.06]"
               >
                 <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300 transition group-hover:bg-cyan-400/15">
