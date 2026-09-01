@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import {
   ArrowRight,
@@ -378,20 +379,63 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6 lg:px-8">
-          <a href="#" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
-              <FileText className="h-4 w-4 text-white" />
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+            <div>
+              <a href="#" className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
+                  <FileText className="h-4 w-4 text-white" />
+                </div>
+
+                <span className="font-extrabold text-slate-900">
+                  PDF<span className="text-indigo-600">umo</span>
+                </span>
+              </a>
+
+              <p className="mt-3 text-sm text-slate-500">
+                Simple PDF tools for everyday work.
+              </p>
             </div>
 
-            <span className="font-extrabold text-slate-900">
-              PDF<span className="text-indigo-600">umo</span>
-            </span>
-          </a>
+            <nav
+              aria-label="Legal"
+              className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm"
+            >
+              <Link
+                href="/legal/privacy-policy"
+                className="text-slate-500 transition hover:text-indigo-600"
+              >
+                Privacy Policy
+              </Link>
 
-          <p className="text-xs text-slate-500">
-            Simple PDF tools for everyday work.
-          </p>
+              <Link
+                href="/legal/terms"
+                className="text-slate-500 transition hover:text-indigo-600"
+              >
+                Terms of Service
+              </Link>
+
+              <Link
+                href="/legal/cookie-policy"
+                className="text-slate-500 transition hover:text-indigo-600"
+              >
+                Cookie Policy
+              </Link>
+
+              <Link
+                href="/legal/disclaimer"
+                className="text-slate-500 transition hover:text-indigo-600"
+              >
+                Disclaimer
+              </Link>
+            </nav>
+          </div>
+
+          <div className="mt-8 border-t border-slate-100 pt-6">
+            <p className="text-xs text-slate-400">
+              © {new Date().getFullYear()} PDFumo. All rights reserved.
+            </p>
+          </div>
         </div>
       </footer>
     </main>
