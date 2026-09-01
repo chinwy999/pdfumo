@@ -31,7 +31,9 @@ export default function CompressPdfPage() {
   const [dragActive, setDragActive] = useState(false);
   const [originalSize, setOriginalSize] = useState(0);
   const [compressedSize, setCompressedSize] = useState(0);
-  const [compressionLevel, setCompressionLevel] = useState<"high" | "balanced" | "small">("balanced");
+  const [compressionLevel, setCompressionLevel] =
+    useState<"high" | "balanced" | "small">("balanced");
+
   const pdfjsRef = useRef<PdfJsModule | null>(null);
 
   function selectFile(file: File | null) {
@@ -126,13 +128,17 @@ export default function CompressPdfPage() {
       setProgress("Reading PDF from your device...");
 
       if (!selectedFile.file || selectedFile.file.size <= 0) {
-        throw new Error("The selected PDF file is empty or could not be read from your device.");
+        throw new Error(
+          "The selected PDF file is empty or could not be read from your device."
+        );
       }
 
       const fileBuffer = await selectedFile.file.arrayBuffer();
 
       if (!fileBuffer || fileBuffer.byteLength === 0) {
-        throw new Error("Unable to read the selected PDF file from your device.");
+        throw new Error(
+          "Unable to read the selected PDF file from your device."
+        );
       }
 
       const bytes = new Uint8Array(fileBuffer);
@@ -151,7 +157,11 @@ export default function CompressPdfPage() {
 
       const outputPdf = await PDFDocument.create();
 
-      setProgress(`Preparing ${sourcePdf.numPages} page${sourcePdf.numPages === 1 ? "" : "s"}...`);
+      setProgress(
+        `Preparing ${sourcePdf.numPages} page${
+          sourcePdf.numPages === 1 ? "" : "s"
+        }...`
+      );
 
       for (
         let pageNumber = 1;
@@ -306,47 +316,50 @@ export default function CompressPdfPage() {
     originalSize > 0 && compressedSize > 0
       ? Math.max(
           0,
-          Math.round(((originalSize - compressedSize) / originalSize) * 100)
+          Math.round(
+            ((originalSize - compressedSize) / originalSize) * 100
+          )
         )
       : 0;
 
   return (
-    <main className="min-h-screen bg-[#060914] text-white">
-      <header className="border-b border-white/[0.07] bg-[#060914]/90 backdrop-blur-xl">
+    <main className="min-h-screen bg-slate-50 text-slate-900">
+      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center px-4 sm:px-6">
           <a
             href="/"
-            className="flex items-center gap-2.5 text-slate-300 transition hover:text-white"
+            className="flex items-center gap-3 text-slate-600 transition hover:text-slate-900"
           >
             <ArrowLeft className="h-5 w-5" />
 
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm">
               <FileText className="h-5 w-5" />
             </div>
 
-            <span className="text-xl font-extrabold tracking-tight">
-              PDF<span className="text-cyan-400">umo</span>
+            <span className="text-xl font-extrabold tracking-tight text-slate-900">
+              PDF<span className="text-indigo-600">umo</span>
             </span>
           </a>
         </div>
       </header>
 
-      <section className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-20">
+      <section className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
         <div className="text-center">
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-300">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
             <Zap className="h-7 w-7" />
           </div>
 
-          <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
             Compress PDF
           </h1>
 
-          <p className="mx-auto mt-4 max-w-xl text-slate-400">
-            Reduce PDF file size with a simple browser-based compression tool.
+          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-500">
+            Reduce PDF file size while keeping your documents easy to share
+            and store.
           </p>
         </div>
 
-        <div className="mt-10 rounded-3xl border border-white/[0.08] bg-white/[0.035] p-4 sm:p-6">
+        <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           {!selectedFile && (
             <div
               onDragOver={(event) => {
@@ -357,15 +370,15 @@ export default function CompressPdfPage() {
               onDrop={handleDrop}
               className={`rounded-2xl border-2 border-dashed p-8 text-center transition sm:p-14 ${
                 dragActive
-                  ? "border-cyan-400 bg-cyan-400/10"
-                  : "border-white/10 bg-black/10 hover:border-cyan-400/30"
+                  ? "border-indigo-500 bg-indigo-50"
+                  : "border-slate-300 bg-slate-50 hover:border-indigo-300 hover:bg-indigo-50/40"
               }`}
             >
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-300">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
                 <Upload className="h-7 w-7" />
               </div>
 
-              <h2 className="mt-5 text-xl font-bold">
+              <h2 className="mt-5 text-xl font-bold text-slate-900">
                 Drop your PDF here
               </h2>
 
@@ -373,7 +386,7 @@ export default function CompressPdfPage() {
                 or choose a file from your device
               </p>
 
-              <label className="mt-6 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-slate-950 transition hover:bg-cyan-50">
+              <label className="mt-6 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700">
                 <Plus className="h-4 w-4" />
                 Choose PDF File
 
@@ -393,14 +406,14 @@ export default function CompressPdfPage() {
                 />
               </label>
 
-              <p className="mt-4 text-xs text-slate-600">
+              <p className="mt-4 text-xs text-slate-400">
                 Your file is processed directly in your browser.
               </p>
             </div>
           )}
 
           {error && (
-            <div className="mt-5 flex items-start gap-3 rounded-xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-300">
+            <div className="mt-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               <X className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -408,14 +421,14 @@ export default function CompressPdfPage() {
 
           {selectedFile && (
             <div className="mt-2">
-              <div className="rounded-2xl border border-white/[0.07] bg-black/20 p-4">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-400/10 text-red-300">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-500">
                     <FileText className="h-6 w-6" />
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold">
+                    <p className="truncate text-sm font-bold text-slate-900">
                       {selectedFile.file.name}
                     </p>
 
@@ -427,7 +440,7 @@ export default function CompressPdfPage() {
                   <button
                     type="button"
                     onClick={removeFile}
-                    className="rounded-lg p-2 text-slate-500 transition hover:bg-red-400/10 hover:text-red-400"
+                    className="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500"
                     aria-label="Remove PDF"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -435,19 +448,18 @@ export default function CompressPdfPage() {
                 </div>
               </div>
 
+              <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4">
+                <div>
+                  <p className="text-sm font-bold text-slate-900">
+                    Compression level
+                  </p>
 
-
-              <div className="mt-6 rounded-2xl border border-white/[0.07] bg-black/20 p-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-bold">Compression level</p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      Higher compression creates a smaller file.
-                    </p>
-                  </div>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Higher compression creates a smaller file.
+                  </p>
                 </div>
 
-                <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
                   {[
                     {
                       id: "high" as const,
@@ -468,35 +480,48 @@ export default function CompressPdfPage() {
                     <button
                       key={level.id}
                       type="button"
-                      onClick={() => setCompressionLevel(level.id)}
+                      onClick={() =>
+                        setCompressionLevel(level.id)
+                      }
                       disabled={processing}
-                      className={`rounded-xl border p-3 text-left transition ${
+                      className={`rounded-xl border p-4 text-left transition ${
                         compressionLevel === level.id
-                          ? "border-cyan-400/50 bg-cyan-400/10"
-                          : "border-white/[0.07] bg-white/[0.02] hover:border-white/15"
+                          ? "border-indigo-500 bg-indigo-50 ring-1 ring-indigo-500"
+                          : "border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50"
                       }`}
                     >
-                      <p className="text-sm font-bold">
-                        {level.title}
-                      </p>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {level.description}
-                      </p>
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-bold text-slate-900">
+                            {level.title}
+                          </p>
+
+                          <p className="mt-1 text-xs text-slate-500">
+                            {level.description}
+                          </p>
+                        </div>
+
+                        {compressionLevel === level.id && (
+                          <CheckCircle2 className="h-5 w-5 shrink-0 text-indigo-600" />
+                        )}
+                      </div>
                     </button>
                   ))}
                 </div>
 
-                <p className="mt-3 text-xs leading-5 text-amber-300/70">
-                  Compressed pages are rendered as images. Text may no longer
-                  be selectable or searchable.
-                </p>
+                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                  <p className="text-xs leading-5 text-amber-800">
+                    Compressed pages are rendered as images. Text may no
+                    longer be selectable or searchable.
+                  </p>
+                </div>
               </div>
 
               <button
                 type="button"
                 onClick={compressPdf}
                 disabled={processing}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-6 py-4 text-sm font-extrabold text-slate-950 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {processing ? (
                   <>
@@ -514,37 +539,40 @@ export default function CompressPdfPage() {
           )}
 
           {result && (
-            <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.07] p-5">
+            <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
               <div className="flex items-center gap-3">
-                <CheckCircle2 className="h-6 w-6 text-emerald-400" />
+                <CheckCircle2 className="h-6 w-6 text-emerald-600" />
 
                 <div>
-                  <h3 className="font-bold">
+                  <h3 className="font-bold text-slate-900">
                     PDF compressed successfully!
                   </h3>
 
-                  <p className="mt-1 text-xs text-slate-400">
-                    Original: {(originalSize / 1024 / 1024).toFixed(2)} MB
+                  <p className="mt-1 text-xs text-slate-500">
+                    Original:{" "}
+                    {(originalSize / 1024 / 1024).toFixed(2)} MB
                     {" · "}
-                    New: {(compressedSize / 1024 / 1024).toFixed(2)} MB
+                    New:{" "}
+                    {(compressedSize / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </div>
               </div>
 
-              <div className="mt-4 rounded-xl bg-black/20 p-4 text-center">
-                <p className="text-2xl font-black text-emerald-300">
+              <div className="mt-4 rounded-xl bg-white p-4 text-center shadow-sm">
+                <p className="text-2xl font-black text-emerald-600">
                   {reduction}% smaller
                 </p>
 
                 <p className="mt-1 text-xs text-slate-500">
-                  Actual reduction depends on the pages, images, and compression level.
+                  Actual reduction depends on the pages, images, and
+                  compression level.
                 </p>
               </div>
 
               <a
                 href={result}
                 download="pdfumo-compressed.pdf"
-                className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-400 px-5 py-3.5 text-sm font-extrabold text-slate-950 transition hover:bg-emerald-300"
+                className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3.5 text-sm font-extrabold text-white transition hover:bg-emerald-700"
               >
                 <Download className="h-5 w-5" />
                 Download Compressed PDF
@@ -554,23 +582,32 @@ export default function CompressPdfPage() {
         </div>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-4 text-center">
-            <p className="text-sm font-bold">Fast</p>
-            <p className="mt-1 text-xs text-slate-500">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
+            <p className="text-sm font-bold text-slate-900">
+              Fast
+            </p>
+
+            <p className="mt-1 text-xs leading-5 text-slate-500">
               Process PDFs directly in your browser
             </p>
           </div>
 
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-4 text-center">
-            <p className="text-sm font-bold">Private</p>
-            <p className="mt-1 text-xs text-slate-500">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
+            <p className="text-sm font-bold text-slate-900">
+              Private
+            </p>
+
+            <p className="mt-1 text-xs leading-5 text-slate-500">
               Files stay on your device
             </p>
           </div>
 
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-4 text-center">
-            <p className="text-sm font-bold">Simple</p>
-            <p className="mt-1 text-xs text-slate-500">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
+            <p className="text-sm font-bold text-slate-900">
+              Simple
+            </p>
+
+            <p className="mt-1 text-xs leading-5 text-slate-500">
               No registration required
             </p>
           </div>

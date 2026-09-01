@@ -195,43 +195,43 @@ export default function JpgToPdfPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#060914] text-white">
-      <header className="border-b border-white/[0.07] bg-[#060914]/90 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center px-4 sm:px-6">
+    <main className="min-h-screen bg-slate-50 text-slate-900">
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex h-16 max-w-5xl items-center px-4 sm:px-6">
           <a
             href="/"
-            className="flex items-center gap-2.5 text-slate-300 transition hover:text-white"
+            className="flex items-center gap-3 text-slate-600 transition hover:text-indigo-600"
           >
             <ArrowLeft className="h-5 w-5" />
 
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600">
-              <FileText className="h-5 w-5" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 shadow-sm">
+              <FileText className="h-5 w-5 text-white" />
             </div>
 
-            <span className="text-xl font-extrabold tracking-tight">
-              PDF<span className="text-cyan-400">umo</span>
+            <span className="text-xl font-extrabold tracking-tight text-slate-900">
+              PDF<span className="text-indigo-600">umo</span>
             </span>
           </a>
         </div>
       </header>
 
-      <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-20">
+      <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
         <div className="text-center">
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-300">
+          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100">
             <FileImage className="h-7 w-7" />
           </div>
 
-          <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
             JPG to PDF
           </h1>
 
-          <p className="mx-auto mt-4 max-w-xl text-slate-400">
+          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-600">
             Convert JPG and PNG images into a clean PDF document directly in
             your browser.
           </p>
         </div>
 
-        <div className="mt-10 rounded-3xl border border-white/[0.08] bg-white/[0.035] p-4 sm:p-6">
+        <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <div
             onDragOver={(event) => {
               event.preventDefault();
@@ -241,15 +241,15 @@ export default function JpgToPdfPage() {
             onDrop={handleDrop}
             className={`rounded-2xl border-2 border-dashed p-8 text-center transition sm:p-14 ${
               dragActive
-                ? "border-cyan-400 bg-cyan-400/10"
-                : "border-white/10 bg-black/10 hover:border-cyan-400/30"
+                ? "border-indigo-500 bg-indigo-50"
+                : "border-slate-200 bg-slate-50 hover:border-indigo-300 hover:bg-indigo-50/40"
             }`}
           >
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-300">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200">
               <Upload className="h-7 w-7" />
             </div>
 
-            <h2 className="mt-5 text-xl font-bold">
+            <h2 className="mt-5 text-xl font-bold text-slate-900">
               Drop your images here
             </h2>
 
@@ -257,7 +257,7 @@ export default function JpgToPdfPage() {
               or choose multiple images from your device
             </p>
 
-            <label className="mt-6 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-slate-950 transition hover:bg-cyan-50">
+            <label className="mt-6 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700">
               <Plus className="h-4 w-4" />
               Choose Images
 
@@ -276,13 +276,13 @@ export default function JpgToPdfPage() {
               />
             </label>
 
-            <p className="mt-4 text-xs text-slate-600">
+            <p className="mt-4 text-xs text-slate-500">
               JPG, JPEG and PNG files are supported.
             </p>
           </div>
 
           {error && (
-            <div className="mt-5 flex items-start gap-3 rounded-xl border border-red-400/20 bg-red-400/10 p-4 text-sm text-red-300">
+            <div className="mt-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               <X className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -290,9 +290,9 @@ export default function JpgToPdfPage() {
 
           {files.length > 0 && (
             <div className="mt-7">
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-4 flex items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-lg font-bold">
+                  <h2 className="text-lg font-bold text-slate-900">
                     Selected Images ({files.length})
                   </h2>
 
@@ -304,7 +304,7 @@ export default function JpgToPdfPage() {
                 <button
                   type="button"
                   onClick={clearAll}
-                  className="text-xs font-semibold text-slate-500 transition hover:text-red-400"
+                  className="text-xs font-semibold text-slate-500 transition hover:text-red-600"
                 >
                   Clear all
                 </button>
@@ -314,41 +314,43 @@ export default function JpgToPdfPage() {
                 {files.map((item, index) => (
                   <div
                     key={item.id}
-                    className="overflow-hidden rounded-2xl border border-white/[0.07] bg-black/20"
+                    className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
                   >
-                    <div className="relative aspect-[4/3] bg-white p-2">
+                    <div className="relative aspect-[4/3] bg-slate-100 p-2">
                       <img
                         src={item.preview}
-                        alt={`Selected image ${index + 1}`}
-                        className="h-full w-full object-contain"
+                        alt={item.file.name}
+                        className="h-full w-full rounded-lg bg-white object-contain"
                       />
 
-                      <div className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg bg-slate-950/80 text-xs font-black">
+                      <div className="absolute left-4 top-4 flex h-8 min-w-8 items-center justify-center rounded-lg bg-slate-900/80 px-2 text-xs font-bold text-white">
                         {index + 1}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-3">
-                      <GripVertical className="h-5 w-5 shrink-0 text-slate-600" />
-
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold">
-                          {item.file.name}
-                        </p>
-
-                        <p className="mt-1 text-xs text-slate-500">
-                          {(item.file.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
                       </div>
 
                       <button
                         type="button"
                         onClick={() => removeFile(item.id)}
-                        className="rounded-lg p-2 text-slate-500 transition hover:bg-red-400/10 hover:text-red-400"
+                        className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg bg-white/95 text-slate-500 shadow-sm ring-1 ring-slate-200 transition hover:bg-red-50 hover:text-red-600"
                         aria-label={`Remove ${item.file.name}`}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
+                    </div>
+
+                    <div className="flex items-center gap-3 border-t border-slate-200 p-3">
+                      <GripVertical className="h-4 w-4 shrink-0 text-slate-300" />
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-slate-700">
+                          {item.file.name}
+                        </p>
+
+                        <p className="mt-0.5 text-xs text-slate-400">
+                          {(item.file.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+
+                      <FileImage className="h-4 w-4 shrink-0 text-indigo-500" />
                     </div>
                   </div>
                 ))}
@@ -358,7 +360,7 @@ export default function JpgToPdfPage() {
                 type="button"
                 onClick={createPdf}
                 disabled={processing}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-400 to-blue-500 px-6 py-4 text-sm font-extrabold text-slate-950 transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {processing ? (
                   <>
@@ -368,8 +370,7 @@ export default function JpgToPdfPage() {
                 ) : (
                   <>
                     <FileText className="h-5 w-5" />
-                    Create PDF from {files.length} Image
-                    {files.length === 1 ? "" : "s"}
+                    Create PDF
                   </>
                 )}
               </button>
@@ -377,55 +378,90 @@ export default function JpgToPdfPage() {
           )}
 
           {result && (
-            <div className="mt-6 rounded-2xl border border-emerald-400/20 bg-emerald-400/[0.07] p-5">
-              <div className="flex items-center gap-3">
-                <CheckCircle2 className="h-6 w-6 text-emerald-400" />
+            <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+              <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm ring-1 ring-emerald-200">
+                  <CheckCircle2 className="h-6 w-6" />
+                </div>
 
-                <div>
-                  <h3 className="font-bold">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-emerald-900">
                     PDF created successfully!
-                  </h3>
+                  </p>
 
-                  <p className="mt-1 text-xs text-slate-400">
-                    {files.length} image{files.length === 1 ? "" : "s"} converted
-                    into PDF pages.
+                  <p className="mt-1 text-xs text-emerald-700">
+                    Your {files.length} image
+                    {files.length === 1 ? "" : "s"} have been combined into one
+                    PDF document.
                   </p>
                 </div>
-              </div>
 
-              <a
-                href={result}
-                download="pdfumo-images.pdf"
-                className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-400 px-5 py-3.5 text-sm font-extrabold text-slate-950 transition hover:bg-emerald-300"
-              >
-                <Download className="h-5 w-5" />
-                Download PDF
-              </a>
+                <a
+                  href={result}
+                  download="pdfumo-images.pdf"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 sm:w-auto"
+                >
+                  <Download className="h-4 w-4" />
+                  Download PDF
+                </a>
+              </div>
             </div>
           )}
+
+          <div className="mt-6 flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-xs font-medium text-slate-500">
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+            Your images are processed directly in your browser.
+          </div>
         </div>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-4 text-center">
-            <p className="text-sm font-bold">Multiple Images</p>
-            <p className="mt-1 text-xs text-slate-500">
-              Convert several images at once
+          <div className="rounded-xl border border-slate-200 bg-white p-5 text-center shadow-sm">
+            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+              <FileImage className="h-5 w-5" />
+            </div>
+
+            <p className="mt-3 text-sm font-bold text-slate-900">
+              Multiple Images
+            </p>
+
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              Combine multiple JPG or PNG images into one PDF.
             </p>
           </div>
 
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-4 text-center">
-            <p className="text-sm font-bold">Private</p>
-            <p className="mt-1 text-xs text-slate-500">
-              Files stay on your device
+          <div className="rounded-xl border border-slate-200 bg-white p-5 text-center shadow-sm">
+            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+              <GripVertical className="h-5 w-5" />
+            </div>
+
+            <p className="mt-3 text-sm font-bold text-slate-900">
+              Simple Ordering
+            </p>
+
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              Images are added to the PDF in the selected order.
             </p>
           </div>
 
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-4 text-center">
-            <p className="text-sm font-bold">Free</p>
-            <p className="mt-1 text-xs text-slate-500">
-              No registration required
+          <div className="rounded-xl border border-slate-200 bg-white p-5 text-center shadow-sm">
+            <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+
+            <p className="mt-3 text-sm font-bold text-slate-900">
+              Browser Processing
+            </p>
+
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              No upload to a server is required.
             </p>
           </div>
+        </div>
+
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-medium text-slate-500">
+          <span>✓ No registration</span>
+          <span>✓ JPG & PNG supported</span>
+          <span>✓ Browser-based processing</span>
         </div>
       </section>
     </main>
