@@ -13,6 +13,7 @@ import {
   Droplets,
   LockKeyhole,
   Menu,
+  Presentation,
   Scissors,
   ShieldCheck,
   Upload,
@@ -64,6 +65,24 @@ const tools = [
     icon: Droplets,
     href: "/tools/watermark-pdf",
   },
+  {
+    title: "PDF to Word",
+    description: "Convert PDF files into editable Word documents.",
+    icon: FileText,
+    href: "/tools/pdf-to-word",
+  },
+  {
+    title: "PDF to Excel",
+    description: "Convert PDF tables into Excel spreadsheets.",
+    icon: FileOutput,
+    href: "/tools/pdf-to-excel",
+  },
+  {
+    title: "PDF to PowerPoint",
+    description: "Convert PDF pages into PowerPoint presentations.",
+    icon: Presentation,
+    href: "/tools/pdf-to-powerpoint",
+  },
 ];
 
 const benefits = [
@@ -95,8 +114,8 @@ export default function Home() {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <a
-            href="#"
+          <Link
+            href="/"
             className="flex items-center gap-2.5"
             aria-label="PDFumo home"
           >
@@ -107,7 +126,7 @@ export default function Home() {
             <span className="text-xl font-extrabold tracking-tight text-slate-900">
               PDF<span className="text-indigo-600">umo</span>
             </span>
-          </a>
+          </Link>
 
           <nav className="hidden items-center gap-8 md:flex">
             <a
@@ -382,7 +401,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
             <div>
-              <a href="#" className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
                   <FileText className="h-4 w-4 text-white" />
                 </div>
@@ -390,7 +409,7 @@ export default function Home() {
                 <span className="font-extrabold text-slate-900">
                   PDF<span className="text-indigo-600">umo</span>
                 </span>
-              </a>
+              </Link>
 
               <p className="mt-3 text-sm text-slate-500">
                 Simple PDF tools for everyday work.
