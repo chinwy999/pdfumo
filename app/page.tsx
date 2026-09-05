@@ -214,17 +214,17 @@ export default function Home() {
         <div className="relative mx-auto max-w-5xl px-4 pb-20 pt-20 text-center sm:px-6 sm:pt-28 lg:px-8 lg:pt-32">
           <div className="mx-auto mb-7 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-2 text-xs font-bold text-indigo-700">
             <FileText className="h-3.5 w-3.5" />
-            Simple tools for everyday PDF tasks
+            Free online PDF tools
           </div>
 
           <h1 className="text-5xl font-black tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
             Powerful PDF tools.
             <br />
-            <span className="text-indigo-600">Simple to use.</span>
+            <span className="text-indigo-600">Simple, fast, and free.</span>
           </h1>
 
           <p className="mx-auto mt-7 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-            Merge, split, compress, convert and protect your PDF files with
+            Merge, split, compress, convert, protect and watermark your PDF files with
             simple online tools designed to help you get things done faster.
           </p>
 
@@ -367,24 +367,49 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* About */}
       <section
         id="about"
         className="mx-auto max-w-5xl px-4 py-24 text-center sm:px-6"
       >
         <div className="rounded-3xl border border-indigo-100 bg-indigo-50 p-8 sm:p-14">
           <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-indigo-600 shadow-sm ring-1 ring-indigo-100">
-            <FilePlus2 className="h-6 w-6" />
+            <FileText className="h-6 w-6" />
           </div>
 
-          <h2 className="text-3xl font-black text-slate-950 sm:text-4xl">
-            Your PDF workflow, simplified.
+          <span className="text-sm font-bold uppercase tracking-wider text-indigo-600">
+            About PDFumo
+          </span>
+
+          <h2 className="mt-3 text-3xl font-black text-slate-950 sm:text-4xl">
+            Simple PDF tools for everyday work.
           </h2>
 
-          <p className="mx-auto mt-4 max-w-xl text-slate-600">
-            PDFumo brings everyday PDF tools together in one clean,
-            straightforward workspace.
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+            PDFumo is a free online platform that brings essential PDF tools
+            together in one simple and easy-to-use place.
           </p>
+
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
+            Compress, merge, split, convert, protect, and watermark PDF files
+            without unnecessary steps or account registration. Our goal is to
+            make common PDF tasks faster, clearer, and more accessible.
+          </p>
+
+          <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm font-semibold text-slate-700">
+            <span className="rounded-full bg-white px-4 py-2 shadow-sm">
+              Free to use
+            </span>
+            <span className="rounded-full bg-white px-4 py-2 shadow-sm">
+              No registration
+            </span>
+            <span className="rounded-full bg-white px-4 py-2 shadow-sm">
+              Simple workflow
+            </span>
+            <span className="rounded-full bg-white px-4 py-2 shadow-sm">
+              Privacy focused
+            </span>
+          </div>
 
           <a
             href="#tools"
