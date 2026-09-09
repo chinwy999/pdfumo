@@ -395,14 +395,14 @@ export default function MergePdfPage() {
                     </h3>
 
                     <p className="mt-1 text-sm text-emerald-700">
-                      Your merged document is ready.
+                      Your merged PDF is ready to download.
                     </p>
                   </div>
                 </div>
 
                 <a
                   href={result}
-                  download="merged.pdf"
+                  download="pdfumo-merged.pdf"
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700"
                 >
                   <Download className="h-4 w-4" />
