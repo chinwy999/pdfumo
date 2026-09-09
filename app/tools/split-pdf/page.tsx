@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -12,6 +12,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
+import JSZip from "jszip";
 import { PDFDocument } from "pdf-lib";
 
 type PdfFile = {
@@ -23,9 +24,22 @@ export default function SplitPdfPage() {
   const [selectedFile, setSelectedFile] = useState<PdfFile | null>(null);
   const [pageRange, setPageRange] = useState("");
   const [processing, setProcessing] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
+  const [results, setResults] = useState<
+    { url: string; filename: string; pages: number[] }[]
+  >([]);
   const [error, setError] = useState("");
   const [dragActive, setDragActive] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      results.forEach((item) => URL.revokeObjectURL(item.url));
+    };
+  }, [results]);
+
+  function clearResults() {
+    results.forEach((item) => URL.revokeObjectURL(item.url));
+    setResults([]);
+  }
 
   function selectFile(file: File) {
     if (
@@ -42,19 +56,19 @@ export default function SplitPdfPage() {
     });
 
     setPageRange("");
-    setResult(null);
+    clearResults();
     setError("");
   }
 
   function removeFile() {
     setSelectedFile(null);
     setPageRange("");
-    setResult(null);
+    clearResults();
     setError("");
   }
 
-  function parsePageRange(input: string, totalPages: number) {
-    const pages = new Set<number>();
+  function parsePageGroups(input: string, totalPages: number) {
+    const groups: number[][] = [];
 
     for (const part of input.split(",")) {
       const value = part.trim();
@@ -62,12 +76,16 @@ export default function SplitPdfPage() {
       if (!value) continue;
 
       if (value.includes("-")) {
-        const [startText, endText] = value
-          .split("-")
-          .map((item) => item.trim());
+        const rangeParts = value.split("-").map((item) => item.trim());
 
-        const start = Number(startText);
-        const end = Number(endText);
+        if (rangeParts.length !== 2) {
+          throw new Error(
+            `Invalid page range. Please use pages between 1 and ${totalPages}.`
+          );
+        }
+
+        const start = Number(rangeParts[0]);
+        const end = Number(rangeParts[1]);
 
         if (
           !Number.isInteger(start) ||
@@ -83,9 +101,9 @@ export default function SplitPdfPage() {
           );
         }
 
-        for (let page = start; page <= end; page++) {
-          pages.add(page);
-        }
+        groups.push(
+          Array.from({ length: end - start + 1 }, (_, index) => start + index)
+        );
       } else {
         const page = Number(value);
 
@@ -99,11 +117,11 @@ export default function SplitPdfPage() {
           );
         }
 
-        pages.add(page);
+        groups.push([page]);
       }
     }
 
-    return Array.from(pages).sort((a, b) => a - b);
+    return groups;
   }
 
   async function splitPdf() {
@@ -114,7 +132,7 @@ export default function SplitPdfPage() {
 
     setProcessing(true);
     setError("");
-    setResult(null);
+    clearResults();
 
     try {
       const bytes = await selectedFile.file.arrayBuffer();
@@ -125,33 +143,47 @@ export default function SplitPdfPage() {
 
       if (!input) {
         throw new Error(
-          "Please enter the pages you want to extract. Example: 1-3 or 1,4,7."
+          "Please enter the page groups you want to split. Example: 1-3, 4-6, 7-10."
         );
       }
 
-      const pages = parsePageRange(input, totalPages);
+      const groups = parsePageGroups(input, totalPages);
 
-      if (!pages.length) {
-        throw new Error("Please enter at least one page.");
+      if (!groups.length) {
+        throw new Error("Please enter at least one page group.");
       }
 
-      const outputPdf = await PDFDocument.create();
+      const outputFiles: {
+        url: string;
+        filename: string;
+        pages: number[];
+      }[] = [];
 
-      const copiedPages = await outputPdf.copyPages(
-        sourcePdf,
-        pages.map((page) => page - 1)
-      );
+      for (let index = 0; index < groups.length; index++) {
+        const group = groups[index];
+        const outputPdf = await PDFDocument.create();
 
-      copiedPages.forEach((page) => outputPdf.addPage(page));
+        const copiedPages = await outputPdf.copyPages(
+          sourcePdf,
+          group.map((page) => page - 1)
+        );
 
-      const outputBytes = await outputPdf.save();
+        copiedPages.forEach((page) => outputPdf.addPage(page));
 
-      const blob = new Blob([new Uint8Array(outputBytes)], {
-        type: "application/pdf",
-      });
+        const outputBytes = await outputPdf.save();
 
-      const url = URL.createObjectURL(blob);
-      setResult(url);
+        const blob = new Blob([new Uint8Array(outputBytes)], {
+          type: "application/pdf",
+        });
+
+        outputFiles.push({
+          url: URL.createObjectURL(blob),
+          filename: `pdfumo-split-${index + 1}.pdf`,
+          pages: group,
+        });
+      }
+
+      setResults(outputFiles);
     } catch (err) {
       setError(
         err instanceof Error
@@ -160,6 +192,42 @@ export default function SplitPdfPage() {
       );
     } finally {
       setProcessing(false);
+    }
+  }
+
+  async function downloadAll() {
+    if (results.length < 2) return;
+
+    try {
+      const zip = new JSZip();
+
+      for (const result of results) {
+        const response = await fetch(result.url);
+        const blob = await response.blob();
+
+        zip.file(result.filename, blob);
+      }
+
+      const zipBlob = await zip.generateAsync({
+        type: "blob",
+        compression: "DEFLATE",
+        compressionOptions: {
+          level: 6,
+        },
+      });
+
+      const url = URL.createObjectURL(zipBlob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "pdfumo-split-files.zip";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(url);
+    } catch {
+      setError("Unable to create the ZIP file. Please try again.");
     }
   }
 
@@ -317,11 +385,11 @@ export default function SplitPdfPage() {
                 </label>
 
                 <p className="mt-1 text-xs leading-5 text-slate-500">
-                  Enter individual pages or ranges. For example:
+                  Enter page groups separated by commas. Each group becomes a separate PDF. For example:
                   <span className="ml-1 font-semibold text-slate-700">
                     1-3
                   </span>
-                  {" or "}
+                  {" then "}
                   <span className="font-semibold text-slate-700">
                     1,4,7
                   </span>
@@ -334,7 +402,7 @@ export default function SplitPdfPage() {
                   onChange={(event) => {
                     setPageRange(event.target.value);
                     setError("");
-                    setResult(null);
+                    clearResults();
                   }}
                   placeholder="e.g. 1-3, 5, 8-10"
                   className="mt-4 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
@@ -362,34 +430,68 @@ export default function SplitPdfPage() {
             </div>
           )}
 
-          {/* Result */}
-          {result && (
-            <div className="mt-7 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm ring-1 ring-emerald-200">
-                    <CheckCircle2 className="h-5 w-5" />
+          {/* Results */}
+          {results.length > 0 && (
+            <div className="mt-7 space-y-4">
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm ring-1 ring-emerald-200">
+                      <CheckCircle2 className="h-5 w-5" />
+                    </div>
+
+                    <div>
+                      <h3 className="font-bold text-emerald-900">
+                        PDF split successfully
+                      </h3>
+
+                      <p className="mt-1 text-sm text-emerald-700">
+                        {results.length} PDF file{results.length === 1 ? "" : "s"} ready to download.
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <h3 className="font-bold text-emerald-900">
-                      PDF split successfully
-                    </h3>
-
-                    <p className="mt-1 text-sm text-emerald-700">
-                      Your extracted pages are ready.
-                    </p>
-                  </div>
+                  {results.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={downloadAll}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download All
+                    </button>
+                  )}
                 </div>
+              </div>
 
-                <a
-                  href={result}
-                  download="split.pdf"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700"
-                >
-                  <Download className="h-4 w-4" />
-                  Download PDF
-                </a>
+              <div className="grid gap-3">
+                {results.map((result) => (
+                  <div
+                    key={result.url}
+                    className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-slate-800">
+                        {result.filename}
+                      </p>
+
+                      <p className="mt-1 text-xs text-slate-500">
+                        {result.pages.length === 1
+                          ? `Page ${result.pages[0]}`
+                          : `Pages ${result.pages[0]}-${result.pages[result.pages.length - 1]}`}
+                      </p>
+                    </div>
+
+                    <a
+                      href={result.url}
+                      download={result.filename}
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-indigo-700"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download
+                    </a>
+                  </div>
+                ))}
               </div>
             </div>
           )}
