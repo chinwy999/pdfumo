@@ -354,8 +354,7 @@ export default function CompressPdfPage() {
           </h1>
 
           <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-500">
-            Reduce PDF file size while keeping your documents easy to share
-            and store.
+            Reduce PDF file size by optimizing pages for smaller, easier-to-share files.
           </p>
         </div>
 
@@ -554,6 +553,8 @@ export default function CompressPdfPage() {
                     {" · "}
                     New:{" "}
                     {(compressedSize / 1024 / 1024).toFixed(2)} MB
+                    {" · "}
+                    Reduced by {reduction}%
                   </p>
                 </div>
               </div>
