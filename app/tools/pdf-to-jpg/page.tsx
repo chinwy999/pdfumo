@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import JSZip from "jszip";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -140,6 +141,42 @@ export default function PdfToJpgPage() {
       );
     } finally {
       setProcessing(false);
+    }
+  }
+
+  async function downloadAllImages() {
+    if (images.length < 2) return;
+
+    try {
+      const zip = new JSZip();
+
+      for (let index = 0; index < images.length; index++) {
+        const response = await fetch(images[index]);
+        const blob = await response.blob();
+
+        zip.file(`pdfumo-page-${index + 1}.jpg`, blob);
+      }
+
+      const zipBlob = await zip.generateAsync({
+        type: "blob",
+        compression: "DEFLATE",
+        compressionOptions: {
+          level: 6,
+        },
+      });
+
+      const url = URL.createObjectURL(zipBlob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "pdfumo-jpg-images.zip";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(url);
+    } catch {
+      setError("Unable to create the ZIP file. Please try again.");
     }
   }
 
@@ -311,7 +348,7 @@ export default function PdfToJpgPage() {
           {/* Results */}
           {images.length > 0 && (
             <div className="mt-8">
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-4 flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-bold text-slate-900">
                     Converted Pages
@@ -323,8 +360,21 @@ export default function PdfToJpgPage() {
                   </p>
                 </div>
 
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
-                  <CheckCircle2 className="h-5 w-5" />
+                <div className="flex items-center gap-2">
+                  {images.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={downloadAllImages}
+                      className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-indigo-700"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download All
+                    </button>
+                  )}
+
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100">
+                    <CheckCircle2 className="h-5 w-5" />
+                  </div>
                 </div>
               </div>
 
@@ -366,7 +416,7 @@ export default function PdfToJpgPage() {
                 </p>
 
                 <p className="mt-1 text-xs text-emerald-700">
-                  Download each JPG page individually.
+                  Download each JPG page individually, or use Download All to get them in one ZIP file.
                 </p>
               </div>
             </div>
