@@ -10,12 +10,215 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { Document, Packer, Paragraph, TextRun } from "docx";
+import { Document, ImageRun, Packer, Paragraph, TextRun } from "docx";
 
 type PdfState = {
   file: File;
   pages: number;
 };
+
+type ExtractedWordImage = {
+  data: Uint8Array;
+  width: number;
+  height: number;
+};
+
+function imageDataToRgba(
+  image: any,
+  width: number,
+  height: number,
+): Uint8ClampedArray | null {
+  if (!image?.data) return null;
+
+  const data = new Uint8Array(image.data);
+  const pixels = width * height;
+
+  if (data.length === pixels * 4) {
+    return new Uint8ClampedArray(data);
+  }
+
+  if (data.length === pixels * 3) {
+    const rgba = new Uint8ClampedArray(pixels * 4);
+
+    for (let i = 0, j = 0; i < data.length; i += 3, j += 4) {
+      rgba[j] = data[i];
+      rgba[j + 1] = data[i + 1];
+      rgba[j + 2] = data[i + 2];
+      rgba[j + 3] = 255;
+    }
+
+    return rgba;
+  }
+
+  return null;
+}
+
+async function imageObjectToPng(
+  image: any,
+): Promise<ExtractedWordImage | null> {
+  try {
+    if (!image) return null;
+
+    const width = Number(image.width ?? 0);
+    const height = Number(image.height ?? 0);
+
+    if (!width || !height) return null;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) return null;
+
+    if (image.bitmap) {
+      ctx.drawImage(image.bitmap, 0, 0, width, height);
+    } else {
+      const rgba = imageDataToRgba(image, width, height);
+
+      if (!rgba) return null;
+
+      const imageData = new ImageData(
+        new Uint8ClampedArray(rgba),
+        width,
+        height,
+      );
+
+      ctx.putImageData(imageData, 0, 0);
+    }
+
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(resolve, "image/png");
+    });
+
+    if (!blob) return null;
+
+    return {
+      data: new Uint8Array(await blob.arrayBuffer()),
+      width,
+      height,
+    };
+  } catch (error) {
+    console.warn("PDFUMO — image conversion failed:", error);
+    return null;
+  }
+}
+
+function getPdfImageObject(
+  store: any,
+  imageId: string,
+  timeoutMs = 1500,
+): Promise<any | null> {
+  return new Promise((resolve) => {
+    let settled = false;
+
+    const finish = (value: any | null) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(value);
+    };
+
+    const timer = setTimeout(() => finish(null), timeoutMs);
+
+    try {
+      store.get(imageId, (image: any) => {
+        finish(image);
+      });
+    } catch {
+      finish(null);
+    }
+  });
+}
+
+async function extractPageImages(
+  page: any,
+  pdfjsLib: any,
+): Promise<ImageRun[]> {
+  const images: ImageRun[] = [];
+
+  try {
+    const operatorList = await page.getOperatorList();
+
+    const imageIds = new Set<string>();
+    const inlineImages: any[] = [];
+
+    for (let index = 0; index < operatorList.fnArray.length; index++) {
+      const fn = operatorList.fnArray[index];
+      const args = operatorList.argsArray[index];
+
+      if (!args || !args.length) continue;
+
+      if (
+        fn === pdfjsLib.OPS.paintImageXObject ||
+        fn === pdfjsLib.OPS.paintJpegXObject ||
+        fn === pdfjsLib.OPS.paintImageXObjectRepeat
+      ) {
+        if (typeof args[0] === "string") {
+          imageIds.add(args[0]);
+        }
+      }
+
+      if (
+        fn === pdfjsLib.OPS.paintInlineImageXObject ||
+        fn === pdfjsLib.OPS.paintInlineImageXObjectGroup
+      ) {
+        if (args[0] && typeof args[0] === "object") {
+          inlineImages.push(args[0]);
+        }
+      }
+    }
+
+    const resolvedImages = await Promise.all(
+      [...imageIds].map(async (imageId) => {
+        const store = imageId.startsWith("g_")
+          ? page.commonObjs
+          : page.objs;
+
+        return getPdfImageObject(store, imageId);
+      }),
+    );
+
+    const allImages = [
+      ...resolvedImages.filter(Boolean),
+      ...inlineImages,
+    ];
+
+    for (const image of allImages) {
+      const png = await imageObjectToPng(image);
+
+      if (!png) continue;
+
+      const maxWidth = 600;
+      const maxHeight = 450;
+      const scale = Math.min(
+        1,
+        maxWidth / png.width,
+        maxHeight / png.height,
+      );
+
+      images.push(
+        new ImageRun({
+          type: "png",
+          data: png.data,
+          transformation: {
+            width: Math.max(1, Math.round(png.width * scale)),
+            height: Math.max(1, Math.round(png.height * scale)),
+          },
+        }),
+      );
+    }
+
+    console.log(
+      `PDFUMO PDF.JS — page images: ${images.length} extracted`,
+    );
+  } catch (error) {
+    console.warn("PDFUMO — page image extraction skipped:", error);
+  }
+
+  return images;
+}
 
 export default function PdfToWordPage() {
   const [pdf, setPdf] = useState<PdfState | null>(null);
@@ -73,9 +276,9 @@ export default function PdfToWordPage() {
     setProgress("Loading PDF...");
 
     try {
-      const pdfjs = await import("pdfjs-dist");
+      const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
-      const pdfjsLib = pdfjs as typeof import("pdfjs-dist");
+      const pdfjsLib = pdfjs as typeof import("pdfjs-dist/legacy/build/pdf.mjs");
 
       pdfjsLib.GlobalWorkerOptions.workerSrc =
         "/pdfjs/pdf.worker.min.mjs";
@@ -84,6 +287,9 @@ export default function PdfToWordPage() {
 
       const loadingTask = pdfjsLib.getDocument({
         data: bytes,
+        standardFontDataUrl: "/pdfjs/standard_fonts/",
+        cMapUrl: "/pdfjs/cmaps/",
+        cMapPacked: true,
       });
 
       const documentPdf = await loadingTask.promise;
@@ -107,31 +313,83 @@ export default function PdfToWordPage() {
         const page = await documentPdf.getPage(pageNumber);
         const textContent = await page.getTextContent();
 
-        const textItems = textContent.items
+        const pageImages = await extractPageImages(page, pdfjsLib);
+
+        if (pageImages.length > 0) {
+          paragraphs.push(
+            new Paragraph({
+              children: pageImages,
+              spacing: {
+                after: 120,
+              },
+            }),
+          );
+        }
+
+        type PositionedTextItem = {
+          text: string;
+          x: number;
+          y: number;
+          width: number;
+          fontSize: number;
+        };
+
+        const positionedItems: PositionedTextItem[] = textContent.items
           .filter(
             (
               item,
             ): item is typeof item & {
               str: string;
-            } => "str" in item,
+              transform: number[];
+              width: number;
+            } =>
+              "str" in item &&
+              "transform" in item &&
+              Array.isArray(item.transform),
           )
-          .map((item) => item.str.trim())
-          .filter(Boolean);
+          .map((item) => {
+            const transform = item.transform;
+
+            const x = Number(transform[4] ?? 0);
+            const y = Number(transform[5] ?? 0);
+
+            const fontSize = Math.max(
+              1,
+              Math.sqrt(
+                Number(transform[0] ?? 0) ** 2 +
+                  Number(transform[1] ?? 0) ** 2,
+              ),
+            );
+
+            return {
+              text: item.str.trim(),
+              x,
+              y,
+              width: Number(item.width ?? 0),
+              fontSize,
+            };
+          })
+          .filter((item) => item.text.length > 0);
+
+        console.log(
+          `PDFUMO PDF.JS — page ${pageNumber}: ${positionedItems.length} positioned items`,
+          positionedItems.slice(0, 20),
+        );
+
+        setProgress(
+          `Page ${pageNumber}: ${positionedItems.length} text items found`,
+        );
 
         if (pageNumber > 1) {
           paragraphs.push(
             new Paragraph({
-              children: [
-                new TextRun({
-                  text: "",
-                }),
-              ],
+              children: [new TextRun({ text: "" })],
               pageBreakBefore: true,
             }),
           );
         }
 
-        if (textItems.length === 0) {
+        if (positionedItems.length === 0) {
           paragraphs.push(
             new Paragraph({
               children: [
@@ -145,7 +403,114 @@ export default function PdfToWordPage() {
           continue;
         }
 
-        for (const text of textItems) {
+        /*
+         * Reconstruct the visual reading order.
+         *
+         * PDF.js gives us positioned fragments, not normal lines.
+         * First sort vertically, then horizontally.
+         */
+
+        const sortedItems = [...positionedItems].sort((a, b) => {
+          const yDifference = Math.abs(a.y - b.y);
+
+          if (yDifference > 3) {
+            return b.y - a.y;
+          }
+
+          return a.x - b.x;
+        });
+
+        type TextLine = {
+          items: PositionedTextItem[];
+          y: number;
+          fontSize: number;
+        };
+
+        const lines: TextLine[] = [];
+
+        for (const item of sortedItems) {
+          const tolerance = Math.max(3, item.fontSize * 0.45);
+
+          let line = lines.find(
+            (candidate) => Math.abs(candidate.y - item.y) <= tolerance,
+          );
+
+          if (!line) {
+            line = {
+              items: [],
+              y: item.y,
+              fontSize: item.fontSize,
+            };
+
+            lines.push(line);
+          }
+
+          line.items.push(item);
+          line.fontSize = Math.max(line.fontSize, item.fontSize);
+        }
+
+        lines.sort((a, b) => b.y - a.y);
+
+        /*
+         * Convert each visual line into readable text.
+         */
+
+        const reconstructedLines = lines
+          .map((line) => {
+            line.items.sort((a, b) => a.x - b.x);
+
+            let text = "";
+
+            for (let index = 0; index < line.items.length; index++) {
+              const item = line.items[index];
+              const previous = line.items[index - 1];
+
+              if (!previous) {
+                text = item.text;
+                continue;
+              }
+
+              const previousEnd = previous.x + previous.width;
+              const gap = item.x - previousEnd;
+
+              const needsSpace =
+                !text.endsWith(" ") &&
+                !item.text.startsWith(" ") &&
+                (
+                  gap > Math.max(1.5, line.fontSize * 0.12) ||
+                  (
+                    /[A-Za-z0-9]$/.test(text) &&
+                    /^[A-Za-z0-9]/.test(item.text)
+                  )
+                );
+
+              text += needsSpace ? ` ${item.text}` : item.text;
+            }
+
+            return {
+              text: text.replace(/\s+/g, " ").trim(),
+              y: line.y,
+              fontSize: line.fontSize,
+            };
+          })
+          .filter((line) => line.text.length > 0);
+
+        /*
+         * Combine normal wrapped lines into paragraphs.
+         * Large vertical gaps create a new Word paragraph.
+         */
+
+        let currentParagraph = "";
+
+        let previousLine:
+          | (typeof reconstructedLines)[number]
+          | null = null;
+
+        function flushParagraph() {
+          const text = currentParagraph.trim();
+
+          if (!text) return;
+
           paragraphs.push(
             new Paragraph({
               children: [
@@ -154,11 +519,40 @@ export default function PdfToWordPage() {
                 }),
               ],
               spacing: {
-                after: 160,
+                after: 120,
               },
             }),
           );
+
+          currentParagraph = "";
         }
+
+        for (const line of reconstructedLines) {
+          if (!previousLine) {
+            currentParagraph = line.text;
+            previousLine = line;
+            continue;
+          }
+
+          const verticalGap = previousLine.y - line.y;
+
+          const expectedLineHeight = Math.max(
+            previousLine.fontSize,
+            line.fontSize,
+            8,
+          );
+
+          if (verticalGap > expectedLineHeight * 1.8) {
+            flushParagraph();
+            currentParagraph = line.text;
+          } else {
+            currentParagraph += ` ${line.text}`;
+          }
+
+          previousLine = line;
+        }
+
+        flushParagraph();
       }
 
       if (paragraphs.length === 0) {
