@@ -15,6 +15,7 @@ import {
   LockKeyhole,
   Menu,
   Presentation,
+  RotateCw,
   Scissors,
   ShieldCheck,
   Upload,
@@ -134,6 +135,17 @@ const tools = [
       "Convertissez les pages PDF en présentations PowerPoint.",
     icon: Presentation,
     href: "/tools/pdf-to-powerpoint",
+  },
+  {
+    titleEn: "Rotate PDF",
+    titleFr: "Faire pivoter un PDF",
+    titleAr: "تدوير PDF",
+    descriptionEn: "Rotate PDF pages by 90°, 180°, or 270°.",
+    descriptionAr: "دوّر صفحات PDF بزاوية 90° أو 180° أو 270°.",
+    descriptionFr:
+      "Faites pivoter les pages PDF de 90°, 180° ou 270°.",
+    icon: RotateCw,
+    href: "/tools/rotate-pdf",
   },
 ];
 
