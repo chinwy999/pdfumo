@@ -15,6 +15,7 @@
     "next": "^16.3.3",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.3.289",
+    "pdfstudio": "^0.4.0",
     "pptxgenjs": "^4.0.1",
     "react": "^18",
     "react-dom": "^18",

@@ -7,6 +7,7 @@ import {
   Check,
   FileArchive,
   FileImage,
+  FileLock2,
   FileOutput,
   FilePlus2,
   FileText,
@@ -146,6 +147,16 @@ const tools = [
       "Faites pivoter les pages PDF de 90°, 180° ou 270°.",
     icon: RotateCw,
     href: "/tools/rotate-pdf",
+  },
+  {
+    titleEn: "Unlock PDF",
+    titleFr: "Déverrouiller un PDF",
+    titleAr: "فتح قفل PDF",
+    descriptionEn: "Remove password protection from a PDF.",
+    descriptionAr: "أزل حماية كلمة المرور من ملف PDF.",
+    descriptionFr: "Supprimez la protection par mot de passe d’un PDF.",
+    icon: FileLock2,
+    href: "/tools/unlock-pdf",
   },
 ];
 
