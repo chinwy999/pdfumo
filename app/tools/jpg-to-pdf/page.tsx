@@ -91,24 +91,58 @@ export default function JpgToPdfPage() {
   }
 
   async function imageToJpegBytes(file: File): Promise<Uint8Array> {
-    const bitmap = await createImageBitmap(file);
+    let bitmap: ImageBitmap | null = null;
+
+    try {
+      bitmap = await createImageBitmap(file);
+    } catch {
+      bitmap = null;
+    }
 
     const canvas = document.createElement("canvas");
-    canvas.width = bitmap.width;
-    canvas.height = bitmap.height;
-
     const context = canvas.getContext("2d");
 
     if (!context) {
-      bitmap.close();
       throw new Error("Unable to create image canvas.");
     }
 
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(bitmap, 0, 0);
+    if (bitmap) {
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
 
-    bitmap.close();
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(bitmap, 0, 0);
+
+      bitmap.close();
+    } else {
+      const imageUrl = URL.createObjectURL(file);
+
+      try {
+        const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+          const img = new Image();
+
+          img.onload = () => resolve(img);
+          img.onerror = () =>
+            reject(new Error(`Unable to decode ${file.name}.`));
+
+          img.src = imageUrl;
+        });
+
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+
+        if (!canvas.width || !canvas.height) {
+          throw new Error(`Unable to decode ${file.name}.`);
+        }
+
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0);
+      } finally {
+        URL.revokeObjectURL(imageUrl);
+      }
+    }
 
     const blob = await new Promise<Blob | null>((resolve) => {
       canvas.toBlob(resolve, "image/jpeg", 0.95);
