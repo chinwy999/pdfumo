@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://pdfumo.com/sitemap.xml",
+    sitemap: "https://pdfumo.vercel.app/sitemap.xml",
   };
 }

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE_URL = "https://pdfumo.com";
+const BASE_URL = "https://pdfumo.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
