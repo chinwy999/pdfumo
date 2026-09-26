@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   description:
     "Free online PDF tools to compress, merge, split, convert, protect, and watermark PDF files. Fast, simple, and private.",
   applicationName: "PDFumo",
+  verification: {
+    google: "j-iHu7oSEMHvRJt9EXUbTqBgAL71liygmOrO5HD72EU",
+  },
   keywords: [
     "PDF tools",
     "PDF compressor",
